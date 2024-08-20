@@ -8,30 +8,25 @@
 // ● 返回结果
 
 Function.prototype.myApply = function(context) {
-  console.log(context, 'context');
-  console.log(this, 'this');
-  if (typeof this !== 'function') {
-    console.log('type error :>> ', this);
+  // 判断调用对象是否为函数
+  if (typeof this !== "function") {
+    throw new TypeError("Error");
   }
   let result = null;
+  // 判断 context 是否存在，如果未传入则为 window
   context = context || window;
+  // 将函数设为对象的方法
   context.fn = this;
-
-  console.log(arguments, 'arguments--012');
+  // 调用方法
   if (arguments[1]) {
     result = context.fn(...arguments[1]);
   } else {
     result = context.fn();
   }
-
+  // 将属性删除
   delete context.fn;
   return result;
-}
-
-function Product(name, price) {
-  this.name = name;
-  this.price = price;
-}
+};
 
 function Food(name, price) {
   console.log('Food函数this =>', this, typeof this);
