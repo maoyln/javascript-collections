@@ -8,17 +8,18 @@
 <body>
   <button type="button" onclick="handleClick()">按钮</button>
   <button type="button" onclick="handleClick1()">按钮1</button>
+  <div>
+    Fetch 是现代浏览器提供的内置 API，用于发起 HTTP 请求。它基于 Promise，使得处理异步操作更加简洁和清晰。它是现代替代 XMLHttpRequest 的方式。
+
+    特点：
+      基于 Promise，支持异步编程（async/await）。
+      原生支持，现代浏览器无需额外安装。
+      支持更丰富的请求和响应处理功能。
+      返回的 Promise 只会在网络错误时被拒绝，4xx、5xx 等 HTTP 错误不会被认为是错误，需要手动处理。
+  </div>
 </body>
 <script>
-  
-// Fetch 是现代浏览器提供的内置 API，用于发起 HTTP 请求。它基于 Promise，使得处理异步操作更加简洁和清晰。它是现代替代 XMLHttpRequest 的方式。
 
-// 特点：
-
-// 基于 Promise，支持异步编程（async/await）。
-// 原生支持，现代浏览器无需额外安装。
-// 支持更丰富的请求和响应处理功能。
-// 返回的 Promise 只会在网络错误时被拒绝，4xx、5xx 等 HTTP 错误不会被认为是错误，需要手动处理。
 
   function handleClick() {
     fetch('https://jsonplaceholder.typicode.com/posts')
