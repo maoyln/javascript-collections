@@ -12,6 +12,16 @@
   它允许开发者将一个或多个事件处理函数附加到元素上，当特定事件发生时，这些处理函数会被调用。
   addEventListener 提供了一种灵活且强大的方式来处理用户交互事件，如点击、键盘输入、鼠标移动等。
 </div>
+<hr>
+<div>
+  1. 语法
+    element.addEventListener(event, handler, [options]);
+  参数：
+    element: 要添加事件监听器的 DOM 元素。
+    event: 事件的类型，以字符串形式表示，如 "click"、"keydown"、"mouseover" 等。
+    handler: 当事件触发时要执行的函数（即事件处理程序）。
+    options (可选): 一个对象，包含监听器特性的配置。或使用 useCapture 布尔值，指定事件是在捕获阶段还是冒泡阶段触发。
+</div>
 
 <div>
 
