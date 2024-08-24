@@ -1,3 +1,4 @@
 # javascript-collections
 js的一些基础知识demo、
 新特性、原理、性能、细节点、底层实现、原型链、函数封装
+异步
