@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Layout with Flexbox</title>
+  <style>
+    body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* 隐藏滚动条 */
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.grail-layout {
+  display: flex;
+  flex-direction: column;
+  background-color: #8c7deb;
+  align-items: stretch;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: top left;
+}
+
+.grail-layout .wrap {
+  display: flex;
+  justify-content: space-between;
+  background-color: rgb(214, 255, 127);
+  flex: 1;
+}
+
+.grail-layout .wrap .left, .grail-layout .wrap .right {
+  background-color: rgb(0, 255, 204);
+  width: 200px;
+}
+
+.grail-layout .wrap .content {
+  flex-grow: 1;
+  background-color: lightgray;
+}
+
+.grail-layout header, .grail-layout footer {
+  height: 50px;
+  line-height: 50px;
+  width: 100%;
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="grail-layout">
+      <header>#header</header>
+      <div class="wrap">
+        <div class="left">left fixed 200px</div>
+        <div class="content">center width auto</div>
+        <div class="right">right width fixed 200px</div>
+      </div>
+      <footer>#footer</footer>
+    </div>
+  </div>
+  <script>
+    function handleLayoutShow() {
+      let container = document.querySelector('.container');
+      let grailLayout = document.querySelector('.grail-layout');
+      
+      if (grailLayout) {
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const pageWidth = 1920;
+        const pageHeight = 1080;
+        
+        const scale = Math.min(windowWidth / pageWidth, windowHeight / pageHeight);
+        grailLayout.style.transform = `scale(${scale})`;
+      }
+    }
+
+    // 初始化页面时调用一次函数
+    handleLayoutShow();
+
+    // 添加事件监听器，监听窗口大小变化
+    window.addEventListener('resize', handleLayoutShow);
+  </script>
+</body>
+</html>

@@ -8,13 +8,24 @@
 <style>
   body {
     margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  .root {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(2, 0, 17);
+    -webkit-user-select: none;
+    user-select: none;
   }
   .grail-layout {
     display: flex;
     background-color: #8c7deb;
     flex-direction: column;
     text-align: center;
-    height: 1080px;
+    height: 934px;
+    /* height: 1080px; */
     width: 1920px;
   }
 
@@ -37,7 +48,7 @@
 
 </style>
 <body>
-  <div id="root">
+  <div id="root" class="root">
     <div id="dss">
       <div id="content" class="grail-layout">
         <header>#header</header>
@@ -63,7 +74,8 @@
       const windowWidth = window.innerWidth,
         windowHeight = window.innerHeight,
         pageWidth = 1920,
-        pageHeight = 1080;
+        pageHeight = 934;
+        // pageHeight = 1080;
       // 计算缩放的宽高比，乘 1000 是为了保留3位小数位
       const scaleX = Math.floor((windowWidth / pageWidth) * 1000) / 1000,
         scaleY = Math.floor((windowHeight / pageHeight) * 1000) / 1000;
@@ -74,11 +86,11 @@
       // 以缩放比例小的为主
       if (scaleX > scaleY) {
         rootEl.style.justifyContent = 'center';
-        rootEl.style.alignItems = 'stretch';
+        rootEl.style.alignItems = 'normal';
         el.style.transform = `scale(${scaleY})`;
         el.style.transformOrigin = 'top center 0px'; // 设置缩放点
       } else {
-        rootEl.style.justifyContent = 'stretch';
+        rootEl.style.justifyContent = 'normal';
         rootEl.style.alignItems = 'center';
         el.style.transform = `scale(${scaleX})`;
         el.style.transformOrigin = 'left center 0px'; // 设置缩放点
@@ -93,7 +105,7 @@
   // 初始化页面时就调用一次函数
   handleLayoutShow();
 
-  // 添加事件监听器，监听窗口大小的变化
+  // // 添加事件监听器，监听窗口大小的变化
   window.addEventListener('resize', handleLayoutShow);
 </script>
 </html>

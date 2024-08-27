@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Layout with Flexbox</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+    .grail-layout {
+      display: flex;
+      flex-direction: column;
+      background-color: #8c7deb;
+      align-items: center;
+      justify-content: center;
+      height: 1080px;
+      width: 1920px;
+    }
+    .grail-layout .wrap {
+      display: flex;
+      justify-content: space-between;
+      background-color: rgb(214, 255, 127);
+      flex-grow: 1;
+      width: 100%;
+    }
+    .grail-layout .wrap .left, .grail-layout .wrap .right {
+      background-color: rgb(0, 255, 204);
+      width: 200px;
+    }
+    .grail-layout .wrap .content {
+      flex-grow: 1;
+      background-color: lightgray;
+    }
+    .grail-layout header, .grail-layout footer {
+      height: 50px;
+      line-height: 50px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="content">
+    <div class="grail-layout">
+      <header>#header</header>
+      <div class="wrap">
+        <div class="left">left fixed 200px</div>
+        <div class="content">center width auto</div>
+        <div class="right">right width fixed 200px</div>
+      </div>
+      <footer>#footer</footer>
+    </div>
+  </div>
+  <script>
+    function handleLayoutShow() {
+      let contentEl = document.getElementById('content');
+      if (contentEl) {
+        const windowWidth = window.innerWidth,
+              windowHeight = window.innerHeight,
+              pageWidth = 1920,
+              pageHeight = 1080;
+        
+        const scaleX = Math.floor((windowWidth / pageWidth) * 1000) / 1000;
+        const scaleY = Math.floor((windowHeight / pageHeight) * 1000) / 1000;
+        const scale = Math.min(scaleX, scaleY);
+        contentEl.style.transform = `scale(${scale})`;
+        if (scaleX > scaleY) {
+          contentEl.style.transformOrigin = 'top center 0px';
+        } else {
+          contentEl.style.transformOrigin = 'left center 0px';
+        }
+        contentEl.style.width = `${pageWidth}px`;
+        contentEl.style.height = `${pageHeight}px`;
+      }
+    }
+
+    handleLayoutShow();
+    window.addEventListener('resize', handleLayoutShow);
+  </script>
+</body>
+</html>
