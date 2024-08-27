@@ -16,8 +16,12 @@
       flex-direction: column;
       background-color: #8c7deb;
       align-items: center;
+      text-align: center;
+
       justify-content: center;
-      height: 1080px;
+      /* height: 1080px; */
+      height: 934px;
+
       width: 1920px;
     }
     .grail-layout .wrap {
@@ -61,7 +65,8 @@
         const windowWidth = window.innerWidth,
               windowHeight = window.innerHeight,
               pageWidth = 1920,
-              pageHeight = 1080;
+              pageHeight = 934;
+              // pageHeight = 1080;
         
         const scaleX = Math.floor((windowWidth / pageWidth) * 1000) / 1000;
         const scaleY = Math.floor((windowHeight / pageHeight) * 1000) / 1000;
