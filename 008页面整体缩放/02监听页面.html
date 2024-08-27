@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resize Listener</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Window Size and Ratio</h1>
+    <p id="dimensions">Width: -px, Height: -px</p>
+    <p id="ratio"></p>
+
+    <script>
+        function updateDimensions() {
+            const width = window.innerWidth || document.documentElement.clientWidth;
+            const height = window.innerHeight || document.documentElement.clientHeight;
+            const ratio = width / height;
+
+            document.getElementById('dimensions').textContent = `Width: ${width}px, Height: ${height}px`;
+            document.getElementById('ratio').textContent = `Ratio: ${ratio.toFixed(2)}`;
+        }
+
+        // 初始化页面时就调用一次函数
+        updateDimensions();
+
+        // 添加事件监听器，监听窗口大小的变化
+        window.addEventListener('resize', updateDimensions);
+    </script>
+
+</body>
+</html>
