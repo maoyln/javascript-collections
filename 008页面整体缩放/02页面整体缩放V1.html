@@ -74,17 +74,16 @@
       // 以缩放比例小的为主
       if (scaleX > scaleY) {
         rootEl.style.justifyContent = 'center';
-        rootEl.style.alignItems = 'normal';
+        rootEl.style.alignItems = 'stretch';
         el.style.transform = `scale(${scaleY})`;
         el.style.transformOrigin = 'top center 0px'; // 设置缩放点
-        this.scale = scaleY; // 记录缩放比，是因为其他页面有用到，例如：视频
       } else {
-        rootEl.style.justifyContent = 'normal';
+        rootEl.style.justifyContent = 'stretch';
         rootEl.style.alignItems = 'center';
         el.style.transform = `scale(${scaleX})`;
         el.style.transformOrigin = 'left center 0px'; // 设置缩放点
-        this.scale = scaleX; // 记录缩放比，是因为其他页面有用到，例如：视频
       }
+      // TODO 此处可以记录放缩的实际比例
       // 清空滚动条
       rootEl.style.minWidth = '';
       rootEl.style.setProperty('overflow', 'unset');
