@@ -1,4 +1,4 @@
-// 时间戳版
+// 节流-时间戳版
 function throttle(fn, delay) {
   var preTime = Date.now();
 
