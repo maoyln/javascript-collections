@@ -12,3 +12,10 @@ function foo() {
 foo()(); // 3
 
 console.log(a); // 2
+
+(function () {
+  var a = 4;
+  console.log(a); // 4
+}
+)(); // 4
+console.log(a); // 2
