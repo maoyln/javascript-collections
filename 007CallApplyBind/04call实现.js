@@ -7,28 +7,28 @@
 // ● 删除刚才新增的属性。
 // ● 返回结果。
 
-// Function.prototype.myCall = function(context) {
-//   console.log('myCall函数context =>',context, typeof context);
-//   console.log('myCall函数this =>', this, typeof this);
-//   if (typeof this !== 'function') {
-//     console.log('type error :>> ', this);
-//   }
+Function.prototype.myCall = function(context) {
+  console.log('myCall函数context =>',context, typeof context);
+  console.log('myCall函数this =>', this, typeof this);
+  if (typeof this !== 'function') {
+    console.log('type error :>> ', this);
+  }
 
-//   console.log(arguments, 'arguments01');
-//   // 获取参数
-//   let args = [...arguments].slice(1);
-//   let result = null;
+  console.log(arguments, 'arguments01');
+  // 获取参数
+  let args = [...arguments].slice(1);
+  let result = null;
 
-//   // 判断context是否传入，如果没有传入则设置为window
-//   context = context || window;
-//   context.fn = this;
+  // 判断context是否传入，如果没有传入则设置为window
+  context = context || window;
+  context.fn = this;
  
-//   // 调用函数
-//   result = context.fn(...args);
-//   delete context.fn;
-//   console.log(result, 'result02');
-//   return result;
-// }
+  // 调用函数
+  result = context.fn(...args);
+  delete context.fn;
+  console.log(result, 'result02');
+  return result;
+}
 
 // 应用
 

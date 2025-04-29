@@ -14,6 +14,7 @@ const MyModule = (() => {
     }
     console.log(deps, 'deps');
     // 执行模块实现函数，注入依赖，并将结果存储到modules中
+    // modules[name] = impl.call(impl, ...deps);
     modules[name] = impl.apply(impl, deps);
   }
 
@@ -26,7 +27,7 @@ const MyModule = (() => {
   return {
     define,
     get,
-    modules
+    // modules
   }
 })()
 
@@ -52,11 +53,11 @@ MyModule.define('module2', ['module1'], function (m1) { // 此处的【m1】其�
 
 const module1 = MyModule.get('module1');
 const module2 = MyModule.get('module2');
-const modules = MyModule.modules;
+// const modules = MyModule.modules;
 
 console.log(module1); // { Hello: [Function: Hello] }
 console.log(module2); // { awesome: [Function: awesome] }
-console.log(modules); // { module1: { Hello: [Function: Hello] }, module2: { awesome: [Function: awesome] }}
+// console.log(modules); // { module1: { Hello: [Function: Hello] }, module2: { awesome: [Function: awesome] }}
 
 console.log(module1.Hello('world')); // Let me introduce:world
 module2.awesome(); // LET ME INTRODUCE:HUNGRY
