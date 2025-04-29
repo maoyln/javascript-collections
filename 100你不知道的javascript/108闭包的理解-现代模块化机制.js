@@ -1,26 +1,30 @@
 const MyModule = (() => {
+  // 私有变量，存储所有模块
   const modules = {};
+  
+  // 定义模块的方法
   const define = (name, deps, impl) => {
-    // 这里的name是模块的名字
+    // 将依赖的模块名称转换为实际的模块对象
     for (let i = 0; i < deps.length; i++) {
-      // 这里的deps是一个数组，里面是模块的名字
-      // 这里的modules是一个对象，里面是模块的名字和模块的实现
       deps[i] = modules[deps[i]];
     }
-    // 这里的impl是一个函数，返回值是一个对象
+    // 执行模块实现函数，注入依赖，并将结果存储到modules中
     modules[name] = impl.apply(impl, deps);
   }
 
+  // 获取模块的方法
   const get = (name) => {
     return modules[name];
   }
+  
+  // 公开define和get方法
   return {
     define,
-    get
+    get,
+    modules
   }
 })()
 
-// 这里的define是一个函数，返回值是一个对象
 MyModule.define('module1', [], function () {
   const Hello = (who) => {
     return "Let me introduce:" + who;
@@ -43,6 +47,17 @@ MyModule.define('module2', ['module1'], function (module1) {
 
 const module1 = MyModule.get('module1');
 const module2 = MyModule.get('module2');
+const modules = MyModule.modules;
 
-console.log(module1.Hello('world')); // Let me introduce world
-module2.awesome(); // LET ME INTRODUCE HUNGRY
+console.log(module1); // { Hello: [Function: Hello] }
+console.log(module2); // { awesome: [Function: awesome] }
+console.log(modules); // { module1: { Hello: [Function: Hello] }, module2: { awesome: [Function: awesome] }}
+
+console.log(module1.Hello('world')); // Let me introduce:world
+module2.awesome(); // LET ME INTRODUCE:HUNGRY
+
+/**
+ * 注：
+ * apply()方法接收两个参数，第一个参数是函数内this的值，第二个参数是一个数组，表示函数的参数。
+ * 
+ */
