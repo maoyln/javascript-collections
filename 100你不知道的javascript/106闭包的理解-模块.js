@@ -1,6 +1,6 @@
 // commonJs也是这个思路(及commonJs的模块化原理)
 
-function foo() {
+function CoolModule() {
   var something = 'cool';
   var another = [1, 2, 3];
 
@@ -17,5 +17,7 @@ function foo() {
   };
 }
 
-foo().doSomething(); // cool
-foo().doAnother(); // 1!2!3
+const cool = CoolModule();
+
+cool.doSomething(); // cool
+cool.doAnother(); // 1!2!3
