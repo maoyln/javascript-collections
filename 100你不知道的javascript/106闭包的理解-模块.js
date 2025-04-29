@@ -1,4 +1,4 @@
-// CommonJS也是这个思路
+// commonJs也是这个思路(及commonJs的模块化原理)
 
 function foo() {
   var something = 'cool';
