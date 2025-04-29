@@ -1,3 +1,5 @@
+// CommonJS也是这个思路
+
 function foo() {
   var something = 'cool';
   var another = [1, 2, 3];
