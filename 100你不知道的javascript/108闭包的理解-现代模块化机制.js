@@ -6,8 +6,13 @@ const MyModule = (() => {
   const define = (name, deps, impl) => {
     // 将依赖的模块名称转换为实际的模块对象
     for (let i = 0; i < deps.length; i++) {
+      // 处理依赖模块
+      // console.log(deps[i]);
       deps[i] = modules[deps[i]];
+      // console.log(deps[i]);
+
     }
+    console.log(deps, 'deps');
     // 执行模块实现函数，注入依赖，并将结果存储到modules中
     modules[name] = impl.apply(impl, deps);
   }
@@ -34,10 +39,10 @@ MyModule.define('module1', [], function () {
   }
 })
 
-MyModule.define('module2', ['module1'], function (module1) {
+MyModule.define('module2', ['module1'], function (m1) { // 此处的【m1】其实是引用的【module1】
   const hungry = 'hungry';
   const awesome = () => {
-    console.log(module1.Hello(hungry).toUpperCase());
+    console.log(m1.Hello(hungry).toUpperCase());
   }
 
   return {
