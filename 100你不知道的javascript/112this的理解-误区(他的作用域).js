@@ -13,7 +13,7 @@ function foo() {
 }
 
 function bar() {
-  console.log(this.a); // undefined
+  console.log(this.a); // 使用bar()的时候 undefined
 }
 
 foo();
