@@ -1,5 +1,5 @@
 /**
- * 默认绑定
+ * this默认绑定
  */
 function foo() {
   // "use strict" // 严格模式下报错 TypeError: Cannot read properties of undefined (reading 'a')
