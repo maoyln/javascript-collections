@@ -1,3 +1,8 @@
+/**
+ * this的第一个误区：this指向本身，
+ * 正确的解释：函数中的this指向该函数的调用者
+ */
+
 function foo(mun) {
   console.log('foo: ' + mun);
   this.count ++; // this指向window
