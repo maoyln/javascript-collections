@@ -1,0 +1,20 @@
+/**
+ * this是在运行时进行绑定的，并不是在编写时绑定，它的上下文取决于函数调用时的各种条件。this的绑定和函数声明的位置没有任何关系，只取决于函数的调用方式
+ * this实际上是在函数被调用时发生的绑定，它指向什么完全取决于函数在哪里被调用。
+ */
+
+function baz() {
+  console.log('baz');
+  bar(); // bar的调用位置
+}
+
+function bar() {
+  console.log('bar');
+  foo(); // foo的调用位置
+}
+
+function foo() {
+  console.log('foo');
+}
+
+baz(); // baz的调用位置
