@@ -39,6 +39,8 @@ obj1.obj2.foo1(); // 32
 console.log('---------------------------------------华丽分割线--------------------------------');
 
 // 虽然bar是obj.foo的一个引用，但是实际上，它引用的是foo函数本身，因此此时的bar()其实是一个不带任何修饰的函数调用，因此应用了默认绑定。
+
+// 切记：调用的时候才绑定this
 function foo2() {
   console.log(this.a); // // 在window下 oop global；  在node下：undefined
 }
@@ -53,3 +55,25 @@ var bar = obj3.foo2; // 函数别名
 var a = "oop global";
 
 bar(); // 在window下 oop global；  在node下：undefined
+
+
+console.log('---------------------------------------华丽分割线--------------------------------');
+
+// 隐式丢失
+// 切记：调用的时候才绑定this
+function foo3() {
+  console.log(this.a); // // 在window下 oop global；  在node下：undefined
+}
+
+function doFoo3(fn){
+  fn();
+}
+
+var obj4 = {
+  a: 4,
+  foo3
+}
+
+var a = "oop global";
+
+doFoo3(obj4.foo3); // // 在window下 oop global；  在node下：undefined
