@@ -1,4 +1,3 @@
-/*************  ✨ Windsurf Command ⭐  *************/
 // 类型判断
 function isType(type) {
   return function (obj) {
@@ -29,5 +28,3 @@ console.log(isUndefined(undefined)); // true
 console.log(isRegExp(/abc/)); // true
 console.log(isDate(new Date())); // true
 console.log(isError(new Error())); // true
-console.log(isSymbol(Symbol())); // true
-/*******  56f4d7f1-9371-4ede-8474-10cb9075f135  *******/
