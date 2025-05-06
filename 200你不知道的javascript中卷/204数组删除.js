@@ -13,7 +13,7 @@ console.log('---------------------------------------华丽分割线-------------
 var b = [];
 
 b[0] = 1;
-b['test'] = 2
+b['test'] = 2 // 不影响数组的长度
 
 console.log(b.length);
 console.log(b['test']);
