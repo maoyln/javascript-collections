@@ -1,13 +1,13 @@
-class CoolGuy {
-  specialTrick = '初始化名字';
+class Person {
+  name = '';
   constructor(trick) {
-    this.specialTrick = trick;
+    this.name = trick;
   }
-  showOff() {
-    console.log('here‘s my trick', this.specialTrick);
+  hello() {
+    console.log('你好', this.name);
   }
 }
 
-Joe = new CoolGuy( "jumping rope" )
+Joe = new Person( "小红" ) // 初始化一个人叫小明
 
-Joe.showOff() // 这是我的绝技:跳绳
+Joe.hello() // 打招呼
