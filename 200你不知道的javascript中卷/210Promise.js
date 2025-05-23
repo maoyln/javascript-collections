@@ -1,6 +1,21 @@
-const a = (a1, fun) => {
-  fun(a1);
+// 模拟promise
+
+function add(aPromise, bPromise, fn) {
+  var x, y;
+  aPromise(function(val) {
+    x = val;
+    if (y !== undefined) {
+      fn(x, y);
+    }
+  });
+  bPromise(function(val) {
+    y = val;
+    if (x !== undefined) {
+      fn(x, y);
+    }
+  });
 }
-const b = (a1) => {
-  console.log(a1);
-}
+
+add(function(fn) { return fn(1); }, function(fn) { return fn(2); }, function(x, y) {
+  console.log(x + y);
+});
