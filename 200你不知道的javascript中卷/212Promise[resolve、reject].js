@@ -56,3 +56,32 @@ console.log('---------------------------------------华丽分割线-------------
  * 还有一点需要清楚:如果使用多个参数调用 resovle(..) 或者 reject(..)，第一个参数之 后的所有参数都会被默默忽略。这看起来似乎违背了我们前面介绍的保证，但实际上并没 有，因为这是对 Promise 机制的无效使用。
  * 对于这组 API 的其他无效使用(比如多次重复 调用 resolve(..))，也是类似的保护处理，所以这里的 Promise 行为是一致的(如果不是 有点令人沮丧的话)。
  */
+
+
+var p = new Promise(function (resolve, reject) {
+  resolve(1, 2, 3);
+}).then((a1, a2, a3) => {
+  console.log(a1, a2, a3, '11111');
+  return 2
+}).then((a1, a2, a3) => {
+  console.log(a1, a2, a3, '22222');
+  return 555
+});
+
+
+console.log(p, 'p');
+p.then((a1, a2, a3) => {
+  console.log(a1, a2, a3, '333333');
+})
+
+var p2 = new Promise(function (resolve, reject) {
+  resolve(1, 2, 3);
+})
+ 
+console.log(p2, 'p2');
+const p3 = p2.then((a1, a2, a3) => {
+  console.log(a1, a2, a3, '333333--111111');
+  return a1
+})
+
+console.log(p3, 'p3');
