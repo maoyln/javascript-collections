@@ -1,4 +1,4 @@
-// 模拟promise
+// 模拟promise.all原理
 
 function add(aPromise, bPromise, fn) {
   var x, y;
@@ -16,6 +16,6 @@ function add(aPromise, bPromise, fn) {
   });
 }
 
-add(function(fn) { return fn(1); }, function(fn) { return fn(2); }, function(x, y) {
-  console.log(x + y);
+add(function(fn) { return fn(1); }, function(fn) { return fn(2); }, function(a, b) {
+  console.log(a + b);
 });
