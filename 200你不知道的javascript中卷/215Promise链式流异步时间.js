@@ -1,25 +1,41 @@
-/**
- * 前面提到的 reject(..) 不会像 resolve(..) 一样进行展开。
- * 如果向 reject(..) 传入一个 Promise/thenable 值，它会把这个值原封不动地设置为 拒绝理由。
- * 后续的拒绝处理函数接收到的是你实际传给 reject(..) 的那个 Promise/thenable，而不是其底层的立即值
- */
-
-var rejectPr = new Promise(function (resolve, reject) {
-  resolve(Promise.reject('reject'));
+// 生成失败的Promise（模拟请求失败）
+const failedPromise1 = new Promise((_, reject) => {
+  setTimeout(() => {
+    reject("请求1失败：网络超时");
+  }, 1000);
 });
 
-rejectPr.then(
-  function (value) {
-    console.log('resolved: ', value);
-  },
-  function (reason) {
-    console.log('rejected: ', reason); // rejected:  reject
-  }
-);
+const failedPromise2 = new Promise((_, reject) => {
+  setTimeout(() => {
+    reject("请求2失败：服务器错误");
+  }, 2000);
+});
 
-rejectPr.then((value) => {
-  console.log(11111111, value);
-},
-(value) => {
-  console.log(2222222, value); // 2222222 reject
-})
+// 生成成功的Promise（模拟请求成功）
+const successfulPromise = new Promise((resolve) => {
+  setTimeout(() => {
+    resolve("请求3成功：数据已获取");
+  }, 1500);
+});
+
+// ---------------------- 案例1：所有Promise都失败 ----------------------
+Promise.none([failedPromise1, failedPromise2])
+  .then((reasons) => {
+    console.log("所有Promise都失败，失败原因：", reasons);
+    // 执行兜底逻辑（如显示错误页面）
+  })
+  .catch((error) => {
+    // 此代码块不会执行，因为所有Promise都失败
+    console.error("有Promise成功，错误原因：", error);
+  });
+
+// ---------------------- 案例2：存在成功的Promise ----------------------
+Promise.none([failedPromise1, successfulPromise])
+  .then((reasons) => {
+    // 此代码块不会执行，因为有Promise成功
+    console.log("所有Promise都失败，失败原因：", reasons);
+  })
+  .catch((error) => {
+    console.error("有Promise成功，第一个成功的值：", error);
+    // 输出："有Promise成功，第一个成功的值：请求3成功：数据已获取"
+  });
