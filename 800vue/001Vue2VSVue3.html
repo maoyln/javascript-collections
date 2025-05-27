@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Vue 3 性能优化演示</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+      <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+      <style type="text/tailwindcss">
+        @layer utilities {
+          .content-auto {
+            content-visibility: auto;
+          }
+          .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+          }
+          .btn-primary {
+            @apply bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-all duration-200;
+          }
+          .btn-secondary {
+            @apply bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded transition-all duration-200;
+          }
+        }
+      </style>
+    </head>
+    <body class="bg-gray-50 font-sans min-h-screen">
+      <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <header class="text-center mb-8">
+          <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-2">Vue 3 性能优化演示</h1>
+          <p class="text-gray-600">对比按需代理、Patch Flag 和静态提升的效果</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- 测试用例 1: 按需代理 -->
+          <div class="bg-white rounded-lg p-6 card-shadow">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+              <i class="fa fa-bolt text-blue-500 mr-2"></i> 按需代理测试
+            </h2>
+            <div class="mb-4">
+              <p class="text-gray-600 mb-2">创建大型嵌套对象，对比初始化时间：</p>
+              <div class="flex space-x-2">
+                <button id="test-lazy-proxy" class="btn-primary">
+                  <i class="fa fa-play mr-1"></i> 运行测试
+                </button>
+                <button id="reset-lazy-proxy" class="btn-secondary">
+                  <i class="fa fa-refresh mr-1"></i> 重置
+                </button>
+              </div>
+            </div>
+            <div class="bg-gray-50 rounded p-4 text-sm">
+              <p class="mb-2"><span class="font-semibold">Vue 2 初始化时间:</span> <span id="vue2-init-time">-</span> ms</p>
+              <p class="mb-2"><span class="font-semibold">Vue 3 初始化时间:</span> <span id="vue3-init-time">-</span> ms</p>
+              <div class="mt-3">
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                  <div id="performance-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Vue 3 比 Vue 2 快 <span id="performance-improvement">0</span>%</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 测试用例 2: Patch Flag -->
+          <div class="bg-white rounded-lg p-6 card-shadow">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+              <i class="fa fa-filter text-green-500 mr-2"></i> Patch Flag 测试
+            </h2>
+            <div class="mb-4">
+              <p class="text-gray-600 mb-2">更新包含大量静态内容的组件，对比更新时间：</p>
+              <div class="flex space-x-2">
+                <button id="test-patch-flag" class="btn-primary">
+                  <i class="fa fa-play mr-1"></i> 运行测试
+                </button>
+                <button id="reset-patch-flag" class="btn-secondary">
+                  <i class="fa fa-refresh mr-1"></i> 重置
+                </button>
+              </div>
+            </div>
+            <div class="bg-gray-50 rounded p-4 text-sm">
+              <p class="mb-2"><span class="font-semibold">Vue 2 更新时间:</span> <span id="vue2-update-time">-</span> ms</p>
+              <p class="mb-2"><span class="font-semibold">Vue 3 更新时间:</span> <span id="vue3-update-time">-</span> ms</p>
+              <div class="mt-3">
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                  <div id="patch-flag-bar" class="bg-green-600 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Vue 3 比 Vue 2 快 <span id="patch-flag-improvement">0</span>%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 测试用例 3: 静态提升 -->
+        <div class="mt-6 bg-white rounded-lg p-6 card-shadow">
+          <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fa fa-rocket text-purple-500 mr-2"></i> 静态提升测试
+          </h2>
+          <div class="mb-4">
+            <p class="text-gray-600 mb-2">重复渲染包含大量静态内容的组件，对比渲染时间：</p>
+            <div class="flex space-x-2">
+              <button id="test-static-hoisting" class="btn-primary">
+                <i class="fa fa-play mr-1"></i> 运行测试
+              </button>
+              <button id="reset-static-hoisting" class="btn-secondary">
+                <i class="fa fa-refresh mr-1"></i> 重置
+              </button>
+            </div>
+          </div>
+          <div class="bg-gray-50 rounded p-4 text-sm">
+            <p class="mb-2"><span class="font-semibold">Vue 2 渲染时间:</span> <span id="vue2-render-time">-</span> ms</p>
+            <p class="mb-2"><span class="font-semibold">Vue 3 渲染时间:</span> <span id="vue3-render-time">-</span> ms</p>
+            <div class="mt-3">
+              <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div id="static-hoisting-bar" class="bg-purple-600 h-2.5 rounded-full" style="width: 0%"></div>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Vue 3 比 Vue 2 快 <span id="static-hoisting-improvement">0</span>%</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 bg-white rounded-lg p-6 card-shadow">
+          <h2 class="text-xl font-bold text-gray-800 mb-4">性能优化总结</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-blue-50 p-4 rounded-lg">
+              <h3 class="font-semibold text-blue-700 mb-2 flex items-center">
+                <i class="fa fa-bolt mr-2"></i> 按需代理
+              </h3>
+              <p class="text-gray-600 text-sm">仅在访问嵌套属性时创建代理，减少初始开销。适合大型数据结构。</p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg">
+              <h3 class="font-semibold text-green-700 mb-2 flex items-center">
+                <i class="fa fa-filter mr-2"></i> Patch Flag
+              </h3>
+              <p class="text-gray-600 text-sm">编译时标记动态节点，缩小 diff 范围。组件越大，性能提升越明显。</p>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-lg">
+              <h3 class="font-semibold text-purple-700 mb-2 flex items-center">
+                <i class="fa fa-rocket mr-2"></i> 静态提升
+              </h3>
+              <p class="text-gray-600 text-sm">将不变的虚拟 DOM 节点提升到渲染函数外，减少重复创建。适合静态内容多的组件。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        // 模拟 Vue 2 响应式系统（简化版）
+        function vue2Reactive(obj) {
+          // 递归遍历所有属性，创建 getter/setter
+          function walk(obj) {
+            Object.keys(obj).forEach(key => {
+              const value = obj[key];
+              if (typeof value === 'object' && value !== null) {
+                walk(value); // 递归处理嵌套对象
+              }
+              defineReactive(obj, key, value);
+            });
+          }
+          
+          walk(obj);
+          return obj;
+        }
+        
+        function defineReactive(obj, key, value) {
+          Object.defineProperty(obj, key, {
+            get() {
+              // 依赖收集逻辑
+              return value;
+            },
+            set(newValue) {
+              if (value !== newValue) {
+                value = newValue;
+                // 触发更新逻辑
+              }
+            }
+          });
+        }
+        
+        // 模拟 Vue 3 响应式系统（简化版）
+        function vue3Reactive(obj) {
+          return new Proxy(obj, {
+            get(target, key) {
+              const value = target[key];
+              // 依赖收集逻辑
+              
+              // 按需代理：只有访问时才递归创建代理
+              if (typeof value === 'object' && value !== null && !isProxy(value)) {
+                target[key] = vue3Reactive(value);
+              }
+              return value;
+            },
+            set(target, key, newValue) {
+              const oldValue = target[key];
+              if (oldValue !== newValue) {
+                target[key] = newValue;
+                // 触发更新逻辑
+              }
+              return true;
+            }
+          });
+        }
+        
+        // 辅助函数
+        function isProxy(obj) {
+          return obj && obj.__isProxy === true;
+        }
+        
+        // 创建大型嵌套对象
+        function createLargeObject(depth = 5, width = 10) {
+          if (depth === 0) return Math.random();
+          
+          const obj = {};
+          for (let i = 0; i < width; i++) {
+            obj[`key${i}`] = createLargeObject(depth - 1, width);
+          }
+          return obj;
+        }
+        
+        // 测试用例 1: 按需代理性能测试
+        document.getElementById('test-lazy-proxy').addEventListener('click', function() {
+          const btn = this;
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> 测试中...';
+          
+          // 创建大型对象
+          const largeObject = createLargeObject(4, 10); // 4层深度，每层10个属性
+
+          // 测试 Vue 2 初始化时间
+          const vue2Start = performance.now();
+          vue2Reactive({ data: structuredClone(largeObject) });
+          const vue2Time = performance.now() - vue2Start;
+          
+          // 测试 Vue 3 初始化时间
+          const vue3Start = performance.now();
+          vue3Reactive({ data: structuredClone(largeObject) });
+          const vue3Time = performance.now() - vue3Start;
+          
+          // 更新结果
+          document.getElementById('vue2-init-time').textContent = vue2Time.toFixed(2);
+          document.getElementById('vue3-init-time').textContent = vue3Time.toFixed(2);
+          
+          // 计算性能提升百分比
+          const improvement = ((vue2Time - vue3Time) / vue2Time * 100).toFixed(1);
+          document.getElementById('performance-improvement').textContent = improvement;
+          
+          // 更新进度条
+          const percent = Math.min(100, (vue2Time / vue3Time) * 10);
+          document.getElementById('performance-bar').style.width = `${percent}%`;
+          
+          btn.innerHTML = '<i class="fa fa-check mr-1"></i> 测试完成';
+          setTimeout(() => {
+            btn.innerHTML = '<i class="fa fa-play mr-1"></i> 运行测试';
+            btn.disabled = false;
+          }, 2000);
+        });
+        
+        document.getElementById('reset-lazy-proxy').addEventListener('click', function() {
+          document.getElementById('vue2-init-time').textContent = '-';
+          document.getElementById('vue3-init-time').textContent = '-';
+          document.getElementById('performance-improvement').textContent = '0';
+          document.getElementById('performance-bar').style.width = '0%';
+        });
+        
+        // 测试用例 2: Patch Flag 性能测试
+        document.getElementById('test-patch-flag').addEventListener('click', function() {
+          const btn = this;
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> 测试中...';
+          
+          // 创建测试组件结构
+          function createComponentTemplate(dynamicIndex, totalNodes = 100) {
+            const nodes = [];
+            for (let i = 0; i < totalNodes; i++) {
+              if (i === dynamicIndex) {
+                nodes.push(`<div class="dynamic">动态内容: {{value}}</div>`);
+              } else {
+                nodes.push(`<div class="static">静态内容 ${i}</div>`);
+              }
+            }
+            return nodes.join('');
+          }
+          
+          // 模拟 Vue 2 更新（全量 diff）
+          function vue2Update() {
+            const template = createComponentTemplate(50);
+            // 编译和 diff 整个模板
+            return template;
+          }
+          
+          // 模拟 Vue 3 更新（仅更新标记的动态节点）
+          function vue3Update() {
+            const template = createComponentTemplate(50);
+            // 只更新标记为动态的节点
+            return template.replace('{{value}}', Math.random());
+          }
+          
+          // 测试 Vue 2 更新性能
+          const vue2Start = performance.now();
+          for (let i = 0; i < 1000; i++) {
+            vue2Update();
+          }
+          const vue2Time = performance.now() - vue2Start;
+          
+          // 测试 Vue 3 更新性能
+          const vue3Start = performance.now();
+          for (let i = 0; i < 1000; i++) {
+            vue3Update();
+          }
+          const vue3Time = performance.now() - vue3Start;
+          
+          // 更新结果
+          document.getElementById('vue2-update-time').textContent = vue2Time.toFixed(2);
+          document.getElementById('vue3-update-time').textContent = vue3Time.toFixed(2);
+          
+          // 计算性能提升百分比
+          const improvement = ((vue2Time - vue3Time) / vue2Time * 100).toFixed(1);
+          document.getElementById('patch-flag-improvement').textContent = improvement;
+          
+          // 更新进度条
+          const percent = Math.min(100, (vue2Time / vue3Time) * 10);
+          document.getElementById('patch-flag-bar').style.width = `${percent}%`;
+          
+          btn.innerHTML = '<i class="fa fa-check mr-1"></i> 测试完成';
+          setTimeout(() => {
+            btn.innerHTML = '<i class="fa fa-play mr-1"></i> 运行测试';
+            btn.disabled = false;
+          }, 2000);
+        });
+        
+        document.getElementById('reset-patch-flag').addEventListener('click', function() {
+          document.getElementById('vue2-update-time').textContent = '-';
+          document.getElementById('vue3-update-time').textContent = '-';
+          document.getElementById('patch-flag-improvement').textContent = '0';
+          document.getElementById('patch-flag-bar').style.width = '0%';
+        });
+        
+        // 测试用例 3: 静态提升性能测试
+        document.getElementById('test-static-hoisting').addEventListener('click', function() {
+          const btn = this;
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> 测试中...';
+          
+          // 创建带大量静态内容的组件
+          function createStaticComponent() {
+            const staticContent = [];
+            for (let i = 0; i < 100; i++) {
+              staticContent.push(`<div class="static">不变内容 ${i}</div>`);
+            }
+            return staticContent.join('');
+          }
+          
+          const staticContent = createStaticComponent();
+          
+          // 模拟 Vue 2 渲染（每次都重新创建静态节点）
+          function vue2Render() {
+            return `<div>${staticContent}<div class="dynamic">动态内容: ${Math.random()}</div></div>`;
+          }
+          
+          // 模拟 Vue 3 渲染（静态节点已提升，只需创建一次）
+          const STATIC_VNODE = `<div>${staticContent}</div>`;
+          function vue3Render() {
+            return `${STATIC_VNODE}<div class="dynamic">动态内容: ${Math.random()}</div>`;
+          }
+          
+          // 测试 Vue 2 渲染性能
+          const vue2Start = performance.now();
+          for (let i = 0; i < 1000; i++) {
+            vue2Render();
+          }
+          const vue2Time = performance.now() - vue2Start;
+          
+          // 测试 Vue 3 渲染性能
+          const vue3Start = performance.now();
+          for (let i = 0; i < 1000; i++) {
+            vue3Render();
+          }
+          const vue3Time = performance.now() - vue3Start;
+          
+          // 更新结果
+          document.getElementById('vue2-render-time').textContent = vue2Time.toFixed(2);
+          document.getElementById('vue3-render-time').textContent = vue3Time.toFixed(2);
+          
+          // 计算性能提升百分比
+          const improvement = ((vue2Time - vue3Time) / vue2Time * 100).toFixed(1);
+          document.getElementById('static-hoisting-improvement').textContent = improvement;
+          
+          // 更新进度条
+          const percent = Math.min(100, (vue2Time / vue3Time) * 10);
+          document.getElementById('static-hoisting-bar').style.width = `${percent}%`;
+          
+          btn.innerHTML = '<i class="fa fa-check mr-1"></i> 测试完成';
+          setTimeout(() => {
+            btn.innerHTML = '<i class="fa fa-play mr-1"></i> 运行测试';
+            btn.disabled = false;
+          }, 2000);
+        });
+        
+        document.getElementById('reset-static-hoisting').addEventListener('click', function() {
+          document.getElementById('vue2-render-time').textContent = '-';
+          document.getElementById('vue3-render-time').textContent = '-';
+          document.getElementById('static-hoisting-improvement').textContent = '0';
+          document.getElementById('static-hoisting-bar').style.width = '0%';
+        });
+      </script>
+    </body>
+    </html>
+  
