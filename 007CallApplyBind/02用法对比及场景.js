@@ -39,9 +39,9 @@ function Food(name, price) {
 // }
 
 const apple = new Food('Apple', 2);
-console.log(apple.name);  // 输出: "Apple"
-console.log(apple.category);  // 输出: "food"
-console.log(apple);  // 输出: Food { name: 'Apple', price: 2, category: 'food' }
+console.log(apple.name); // 输出: "Apple"
+console.log(apple.category); // 输出: "food"
+console.log(apple); // 输出: Food { name: 'Apple', price: 2, category: 'food' }
 
 console.log('--------------------------------------华丽分割线--------------------------------------');
 

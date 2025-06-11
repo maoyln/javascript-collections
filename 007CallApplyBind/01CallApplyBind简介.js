@@ -2,15 +2,17 @@
 // call 方法可以调用一个函数，并且显式地设置 this 的值以及传递给函数的参数。参数在 call 方法中是逐个传递的。
 
 // 语法
-  // function.call(thisArg, arg1, arg2, ...)
-  // thisArg: 在函数执行时，this 关键字所指向的对象。
-  // arg1, arg2, ...: 传递给函数的参数。
+// function.call(thisArg, arg1, arg2, ...)
+// thisArg: 在函数执行时，this 关键字所指向的对象。
+// arg1, arg2, ...: 传递给函数的参数。
 
 function greet(greeting, punctuation) {
   console.log(greeting + ', ' + this.name + punctuation);
 }
 
-const person = { name: 'Alice' };
+const person = {
+  name: 'Alice'
+};
 
 greet.call(person, 'Hello', '!'); // 输出: "Hello, Alice!"
 
@@ -31,7 +33,9 @@ function greet1(greeting, punctuation) {
   console.log(greeting + ', ' + this.name + punctuation);
 }
 
-const person1 = { name: 'Alice' };
+const person1 = {
+  name: 'Alice'
+};
 
 greet1.apply(person1, ['Hello', '!']); // 输出: "Hello, Alice!"
 
@@ -52,7 +56,9 @@ function greet2(greeting, punctuation) {
   console.log(greeting + ', ' + this.name + punctuation);
 }
 
-const person2 = { name: 'Alice' };
+const person2 = {
+  name: 'Alice'
+};
 
 // const greetAlice = greet2.bind(person2, 'Hello');
 // greetAlice('!'); // 输出: "Hello, Alice!"
