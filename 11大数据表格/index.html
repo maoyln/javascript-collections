@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript大数据表格完整实现</title>
+    <style>
+        /* 基础样式 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            padding: 20px;
+        }
+        
+        /* 表格容器样式 */
+        .big-data-table-container {
+            width: 100%;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        /* 工具栏样式 */
+        .table-toolbar {
+            padding: 10px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .table-toolbar select, 
+        .table-toolbar button {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        
+        .table-toolbar button {
+            cursor: pointer;
+            background: #f0f0f0;
+        }
+        
+        .table-toolbar button:hover {
+            background: #e0e0e0;
+        }
+        
+        /* 表格包装器样式 */
+        .table-wrapper {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* 表头样式 */
+        .table-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            overflow: hidden;
+            background: #f8f8f8;
+            z-index: 2;
+        }
+        
+        /* 表体样式 */
+        .table-body {
+            position: absolute;
+            top: 40px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            z-index: 1;
+        }
+        
+        /* 表尾样式 */
+        .table-footer {
+            padding: 10px;
+            background: #f5f5f5;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: center;
+        }
+        
+        /* 表格基础样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+            font-weight: bold;
+        }
+        
+        /* 虚拟滚动内容区域 */
+        .virtual-scroll-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+        }
+        
+        /* 表格内容区域 */
+        .table-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+        }
+        
+        /* 校验错误样式 */
+        .invalid-cell {
+            background-color: #ffdddd;
+            animation: flash 0.5s;
+        }
+        
+        @keyframes flash {
+            0% { background-color: #ff9999; }
+            100% { background-color: #ffdddd; }
+        }
+        
+        /* 进度条单元格样式 */
+        .progress-cell {
+            height: 20px;
+            position: relative;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            color: #333;
+        }
+        
+        /* 状态单元格样式 */
+        .status-active {
+            color: #67c23a;
+            font-weight: bold;
+        }
+        
+        .status-inactive {
+            color: #f56c6c;
+        }
+        
+        .status-pending {
+            color: #e6a23c;
+        }
+        
+        /* 编辑器样式 */
+        .editable-cell input,
+        .editable-cell select {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ddd;
+            padding: 0 5px;
+            font: inherit;
+        }
+        
+        /* 错误提示样式 */
+        .error-tooltip {
+            position: absolute;
+            background: #ffebee;
+            color: #f44336;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+        
+        /* 分页控件样式 */
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pagination button {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination select {
+            padding: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JavaScript大数据表格完整实现</h1>
+    <p>演示包含纯展示、可编辑、带校验和自定义单元格四种模式的大数据表格</p>
+    
+    <div class="big-data-table-container">
+        <div class="table-toolbar">
+            <select id="mode-selector">
+                <option value="display">纯展示模式</option>
+                <option value="editable">可编辑模式</option>
+                <option value="validation">带校验编辑</option>
+                <option value="custom">自定义单元格</option>
+            </select>
+            <button id="export-btn">导出Excel</button>
+        </div>
+        
+        <div class="table-wrapper">
+            <div class="table-header">
+                <table>
+                    <thead id="table-head"></thead>
+                </table>
+            </div>
+            <div class="table-body" id="table-body">
+                <div class="virtual-scroll-content"></div>
+                <table>
+                    <tbody id="table-content"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="table-footer">
+            <div class="pagination">
+                <button class="prev-page" disabled>上一页</button>
+                <span class="page-info">第1页</span>
+                <button class="next-page">下一页</button>
+                <select class="page-size">
+                    <option value="50">50条/页</option>
+                    <option value="100" selected>100条/页</option>
+                    <option value="200">200条/页</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 工具函数：HTML转义
+        function escapeHtml(unsafe) {
+            if (unsafe == null) return '';
+            return unsafe.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // 工具函数：生成随机数据
+        function generateRandomData(count) {
+            const data = [];
+            const statuses = ['active', 'inactive', 'pending'];
+            const departments = ['研发部', '市场部', '销售部', '人事部', '财务部'];
+            
+            for (let i = 0; i < count; i++) {
+                data.push({
+                    id: i + 1,
+                    name: `员工${i + 1}`,
+                    email: `user${i + 1}@example.com`,
+                    phone: `138${Math.floor(10000000 + Math.random() * 90000000)}`,
+                    age: Math.floor(Math.random() * 30) + 20,
+                    salary: Math.floor(Math.random() * 20000) + 5000,
+                    status: statuses[Math.floor(Math.random() * statuses.length)],
+                    department: departments[Math.floor(Math.random() * departments.length)],
+                    joinDate: new Date(Date.now() - Math.floor(Math.random() * 3 * 365 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
+                    performance: Math.floor(Math.random() * 100),
+                    progress: Math.floor(Math.random() * 100)
+                });
+            }
+            
+            return data;
+        }
+
+        /**
+         * Validator 校验管理器
+         * 负责数据校验工作，包括字段级和行级校验
+         */
+        class Validator {
+            constructor(tableManager) {
+                this.tableManager = tableManager;
+                this.ruleCache = new Map(); // 缓存校验规则
+            }
+            
+            /**
+             * 校验单个字段
+             * @param {string} field 字段名
+             * @param {any} value 字段值
+             * @param {object} rowData 整行数据
+             * @returns {Array} 错误消息数组，空数组表示校验通过
+             */
+            validate(field, value, rowData) {
+                const colDef = this.tableManager.columns.find(col => col.field === field);
+                if (!colDef) return [];
+                
+                // 获取校验规则
+                const rules = this.getRulesForColumn(colDef);
+                
+                // 执行校验
+                const errors = [];
+                rules.forEach(rule => {
+                    const result = rule.validator(value, rowData);
+                    if (result !== true) {
+                        errors.push(typeof result === 'string' ? result : rule.message);
+                    }
+                });
+                
+                return errors;
+            }
+            
+            /**
+             * 获取列的校验规则
+             * @param {object} colDef 列定义
+             * @returns {Array} 校验规则数组
+             */
+            getRulesForColumn(colDef) {
+                // 从缓存获取
+                if (this.ruleCache.has(colDef.field)) {
+                    return this.ruleCache.get(colDef.field);
+                }
+                
+                const rules = [];
+                
+                // 必填校验
+                if (colDef.required) {
+                    rules.push({
+                        validator: (value) => value != null && value !== '',
+                        message: '该字段为必填项'
+                    });
+                }
+                
+                // 类型校验
+                if (colDef.type === 'number') {
+                    rules.push({
+                        validator: (value) => !isNaN(Number(value)),
+                        message: '请输入有效的数字'
+                    });
+                }
+                
+                // 邮箱格式校验
+                if (colDef.field === 'email') {
+                    rules.push({
+                        validator: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+                        message: '请输入有效的邮箱地址'
+                    });
+                }
+                
+                // 手机号格式校验
+                if (colDef.field === 'phone') {
+                    rules.push({
+                        validator: (value) => /^1[3-9]\d{9}$/.test(value),
+                        message: '请输入有效的手机号码'
+                    });
+                }
+                
+                // 范围校验
+                if (colDef.min !== undefined || colDef.max !== undefined) {
+                    rules.push({
+                        validator: (value) => {
+                            const num = Number(value);
+                            return (
+                                (colDef.min === undefined || num >= colDef.min) &&
+                                (colDef.max === undefined || num <= colDef.max)
+                            );
+                        },
+                        message: `值必须在 ${colDef.min || '-∞'} 到 ${colDef.max || '+∞'} 之间`
+                    });
+                }
+                
+                // 自定义校验
+                if (colDef.validator) {
+                    rules.push({
+                        validator: colDef.validator,
+                        message: colDef.validationMessage || '无效的输入'
+                    });
+                }
+                
+                // 缓存规则
+                this.ruleCache.set(colDef.field, rules);
+                
+                return rules;
+            }
+            
+            /**
+             * 校验整行数据
+             * @param {object} rowData 行数据
+             * @returns {object|null} 错误对象，key为字段名，value为错误数组，null表示校验通过
+             */
+            validateRow(rowData) {
+                const errors = {};
+                
+                this.tableManager.columns.forEach(col => {
+                    if (col.editable || col.validator) {
+                        const fieldErrors = this.validate(col.field, rowData[col.field], rowData);
+                        if (fieldErrors.length > 0) {
+                            errors[col.field] = fieldErrors;
+                        }
+                    }
+                });
+                
+                return Object.keys(errors).length > 0 ? errors : null;
+            }
+            
+            /**
+             * 校验所有数据
+             * @returns {Array} 包含错误信息的行数组
+             */
+            validateAll() {
+                const invalidRows = [];
+                
+                this.tableManager.data.forEach((row, index) => {
+                    const errors = this.validateRow(row);
+                    if (errors) {
+                        invalidRows.push({ index, row, errors });
+                    }
+                });
+                
+                return invalidRows;
+            }
+        }
+
+        /**
+         * EditorManager 编辑管理器
+         * 负责处理表格的编辑功能
+         */
+        class EditorManager {
+            constructor(tableManager) {
+                this.tableManager = tableManager;
+                this.currentEditor = null;
+                this.editorTypes = {
+                    text: this.createTextEditor.bind(this),
+                    number: this.createNumberEditor.bind(this),
+                    select: this.createSelectEditor.bind(this),
+                    date: this.createDateEditor.bind(this)
+                };
+            }
+            
+            /**
+             * 处理单元格点击事件
+             * @param {Event} event 点击事件
+             */
+            handleClick(event) {
+                const cell = event.target.closest('td');
+                if (!cell || this.currentEditor) return;
+                
+                const rowId = cell.parentNode.dataset.rowId;
+                const colIndex = cell.cellIndex;
+                const colDef = this.tableManager.columns[colIndex];
+                
+                // 检查是否可编辑
+                if (!colDef.editable && this.tableManager.config.mode !== 'editable') {
+                    return;
+                }
+                
+                // 获取行数据
+                const row = this.tableManager.data.find(r => r.id == rowId);
+                if (!row) return;
+                
+                // 创建编辑器
+                this.currentEditor = this.createEditor(cell, row, colDef);
+            }
+            
+            /**
+             * 创建编辑器
+             * @param {HTMLElement} cell 单元格元素
+             * @param {object} row 行数据
+             * @param {object} colDef 列定义
+             * @returns {object} 编辑器控制器
+             */
+            createEditor(cell, row, colDef) {
+                // 保存原始值
+                const originalValue = row[colDef.field];
+                
+                // 确定编辑器类型
+                const editorType = colDef.editorType || 
+                                 (colDef.type === 'number' ? 'number' : 'text');
+                
+                // 创建编辑器
+                const editor = this.editorTypes[editorType](cell, row, colDef);
+                
+                // 聚焦编辑器
+                editor.focus();
+                
+                // 返回编辑器控制器
+                return {
+                    element: editor,
+                    commit: () => {
+                        const newValue = editorType === 'number' ? Number(editor.value) : editor.value;
+                        row[colDef.field] = newValue;
+                        this.tableManager.cellRenderer.renderCell(row.id, colDef.field);
+                    },
+                    revert: () => {
+                        row[colDef.field] = originalValue;
+                    },
+                    destroy: () => {
+                        cell.removeChild(editor);
+                    }
+                };
+            }
+            
+            /**
+             * 创建文本编辑器
+             */
+            createTextEditor(cell, row, colDef) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = row[colDef.field] || '';
+                input.dataset.field = colDef.field;
+                input.dataset.rowId = row.id;
+                input.className = 'editor-input';
+                
+                // 添加编辑器到单元格
+                cell.innerHTML = '';
+                cell.appendChild(input);
+                
+                // 绑定事件
+                input.addEventListener('blur', () => this.finishEditing(true));
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') this.finishEditing(true);
+                    if (e.key === 'Escape') this.finishEditing(false);
+                });
+                
+                return input;
+            }
+            
+            /**
+             * 创建数字编辑器
+             */
+            createNumberEditor(cell, row, colDef) {
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.value = row[colDef.field] || '';
+                input.dataset.field = colDef.field;
+                input.dataset.rowId = row.id;
+                input.className = 'editor-input';
+                
+                if (colDef.min !== undefined) input.min = colDef.min;
+                if (colDef.max !== undefined) input.max = colDef.max;
+                if (colDef.step !== undefined) input.step = colDef.step;
+                
+                cell.innerHTML = '';
+                cell.appendChild(input);
+                
+                input.addEventListener('blur', () => this.finishEditing(true));
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') this.finishEditing(true);
+                    if (e.key === 'Escape') this.finishEditing(false);
+                });
+                
+                return input;
+            }
+            
+            /**
+             * 创建选择器编辑器
+             */
+            createSelectEditor(cell, row, colDef) {
+                const select = document.createElement('select');
+                select.dataset.field = colDef.field;
+                select.dataset.rowId = row.id;
+                select.className = 'editor-input';
+                
+                // 添加选项
+                colDef.options.forEach(option => {
+                    const optElement = document.createElement('option');
+                    optElement.value = option.value;
+                    optElement.textContent = option.label;
+                    if (option.value === row[colDef.field]) {
+                        optElement.selected = true;
+                    }
+                    select.appendChild(optElement);
+                });
+                
+                cell.innerHTML = '';
+                cell.appendChild(select);
+                
+                select.addEventListener('change', () => this.finishEditing(true));
+                select.addEventListener('blur', () => this.finishEditing(true));
+                select.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') this.finishEditing(false);
+                });
+                
+                return select;
+            }
+            
+            /**
+             * 创建日期编辑器
+             */
+            createDateEditor(cell, row, colDef) {
+                const input = document.createElement('input');
+                input.type = 'date';
+                input.value = row[colDef.field] || '';
+                input.dataset.field = colDef.field;
+                input.dataset.rowId = row.id;
+                input.className = 'editor-input';
+                
+                cell.innerHTML = '';
+                cell.appendChild(input);
+                
+                input.addEventListener('change', () => this.finishEditing(true));
+                input.addEventListener('blur', () => this.finishEditing(true));
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') this.finishEditing(false);
+                });
+                
+                return input;
+            }
+            
+            /**
+             * 完成编辑
+             * @param {boolean} commit 是否提交更改
+             */
+            finishEditing(commit) {
+                if (!this.currentEditor) return;
+                
+                try {
+                    if (commit) {
+                        // 获取列定义
+                        const colIndex = this.currentEditor.element.cellIndex;
+                        const colDef = this.tableManager.columns[colIndex];
+                        
+                        // 校验数据
+                        const errors = this.tableManager.validator.validate(
+                            colDef.field, 
+                            this.currentEditor.element.value,
+                            this.tableManager.data.find(r => r.id == this.currentEditor.element.dataset.rowId)
+                        );
+                        
+                        if (errors.length > 0) {
+                            this.showErrors(this.currentEditor.element, errors);
+                            return;
+                        }
+                        
+                        this.currentEditor.commit();
+                    } else {
+                        this.currentEditor.revert();
+                    }
+                } finally {
+                    this.currentEditor.destroy();
+                    this.currentEditor = null;
+                }
+            }
+            
+            /**
+             * 显示错误信息
+             */
+            showErrors(input, errors) {
+                // 高亮显示错误输入
+                input.classList.add('error');
+                
+                // 显示错误提示
+                const tooltip = document.createElement('div');
+                tooltip.className = 'error-tooltip';
+                tooltip.textContent = errors.join(', ');
+                
+                const rect = input.getBoundingClientRect();
+                tooltip.style.top = `${rect.bottom + window.scrollY}px`;
+                tooltip.style.left = `${rect.left + window.scrollX}px`;
+                
+                document.body.appendChild(tooltip);
+                
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    if (tooltip.parentNode) {
+                        tooltip.parentNode.removeChild(tooltip);
+                    }
+                }, 3000);
+            }
+            
+            /**
+             * 获取可编辑内容
+             */
+            getEditableContent(rowData, colDef) {
+                if (colDef.editorType === 'select') {
+                    const options = colDef.options.map(opt => 
+                        `<option value="${opt.value}" ${opt.value === rowData[colDef.field] ? 'selected' : ''}>${opt.label}</option>`
+                    ).join('');
+                    return `<select data-field="${colDef.field}" data-row-id="${rowData.id}">${options}</select>`;
+                }
+                
+                return `<input type="${colDef.type || 'text'}" 
+                             value="${escapeHtml(rowData[colDef.field])}" 
+                             data-field="${colDef.field}" 
+                             data-row-id="${rowData.id}"
+                             ${colDef.type === 'number' ? `min="${colDef.min || ''}" max="${colDef.max || ''}"` : ''}>`;
+            }
+        }
+
+        /**
+         * VirtualScroll 虚拟滚动控制器
+         * 负责处理大数据量下的高效滚动渲染
+         */
+        class VirtualScroll {
+            constructor(tableManager) {
+                this.tableManager = tableManager;
+                this.scrollTop = 0;
+                this.startIndex = 0;
+                this.endIndex = 0;
+                this.renderChunkSize = 50; // 每次渲染的行数
+                this.renderDelay = 50; // 渲染延迟(ms)
+                this.pendingRender = null;
+            }
+            
+            /**
+             * 处理滚动事件
+             */
+            handleScroll() {
+                // 记录滚动位置
+                this.scrollTop = this.tableManager.body.scrollTop;
+                
+                // 计算新的起始索引（带缓冲区）
+                const newStart = Math.max(
+                    0,
+                    Math.floor(this.scrollTop / this.tableManager.config.rowHeight) - this.renderChunkSize / 2
+                );
+                
+                // 如果变化不大，可以跳过重新渲染
+                if (Math.abs(newStart - this.startIndex) < this.renderChunkSize / 4) {
+                    return;
+                }
+                
+                // 使用防抖优化频繁滚动
+                if (this.pendingRender) {
+                    cancelAnimationFrame(this.pendingRender);
+                }
+                
+                this.pendingRender = requestAnimationFrame(() => {
+                    this.updateVisibleRange();
+                    this.tableManager.cellRenderer.renderVisibleCells();
+                    this.pendingRender = null;
+                });
+            }
+            
+            /**
+             * 更新可见区域范围
+             */
+            updateVisibleRange() {
+                // 计算可见区域的行范围
+                const visibleRows = this.tableManager.config.visibleRows;
+                this.startIndex = Math.floor(this.scrollTop / this.tableManager.config.rowHeight);
+                this.endIndex = Math.min(
+                    this.startIndex + visibleRows + this.renderChunkSize,
+                    this.tableManager.data.length
+                );
+                
+                // 更新表格位置
+                this.tableManager.tableContent.style.transform = `translateY(${this.startIndex * this.tableManager.config.rowHeight}px)`;
+            }
+            
+            /**
+             * 更新虚拟滚动内容
+             */
+            update() {
+                // 更新虚拟内容区域高度
+                const totalHeight = this.tableManager.data.length * this.tableManager.config.rowHeight;
+                this.tableManager.virtualContent.style.height = `${totalHeight}px`;
+                
+                // 更新可见范围
+                this.updateVisibleRange();
+            }
+        }
+
+        /**
+         * CellRenderer 单元格渲染器
+         * 负责单元格的渲染工作
+         */
+        class CellRenderer {
+            constructor(tableManager) {
+                this.tableManager = tableManager;
+                this.rowCache = []; // 行DOM缓存
+                this.cellCache = new Map(); // 单元格渲染缓存
+            }
+            
+            /**
+             * 渲染可见单元格
+             */
+            renderVisibleCells() {
+                const { startIndex, endIndex } = this.tableManager.virtualScroll;
+                const fragment = document.createDocumentFragment();
+                
+                // 清空现有行（保留DOM节点以便复用）
+                while (this.tableManager.tableContent.firstChild) {
+                    const row = this.tableManager.tableContent.firstChild;
+                    this.tableManager.tableContent.removeChild(row);
+                    this.recycleRow(row);
+                }
+                
+                // 渲染可见行
+                for (let i = startIndex; i < endIndex; i++) {
+                    const rowData = this.tableManager.data[i];
+                    const row = this.createRow(rowData, i);
+                    fragment.appendChild(row);
+                }
+                
+                this.tableManager.tableContent.appendChild(fragment);
+            }
+            
+            /**
+             * 创建行DOM
+             */
+            createRow(rowData, rowIndex) {
+                // 尝试复用行DOM
+                const row = this.getRecycledRow() || document.createElement('tr');
+                row.style.height = `${this.tableManager.config.rowHeight}px`;
+                row.dataset.rowId = rowData.id;
+                
+                // 渲染每个单元格
+                this.tableManager.columns.forEach((col, colIndex) => {
+                    let cell = row.cells[colIndex];
+                    if (!cell) {
+                        cell = document.createElement('td');
+                        row.appendChild(cell);
+                    }
+                    
+                    this.renderCellContent(cell, rowData, col);
+                });
+                
+                return row;
+            }
+            
+            /**
+             * 渲染单元格内容
+             */
+            renderCellContent(cell, rowData, colDef) {
+                // 根据模式选择渲染方式
+                switch (this.tableManager.config.mode) {
+                    case 'display':
+                        cell.innerHTML = this.renderDisplayCell(rowData, colDef);
+                        break;
+                    case 'editable':
+                        cell.innerHTML = this.tableManager.editorManager.getEditableContent(rowData, colDef);
+                        cell.classList.toggle('editable-cell', colDef.editable);
+                        break;
+                    case 'validation':
+                        cell.innerHTML = this.renderValidatedCell(rowData, colDef);
+                        cell.classList.toggle('editable-cell', colDef.editable);
+                        break;
+                    case 'custom':
+                        cell.innerHTML = this.renderCustomCell(rowData, colDef);
+                        break;
+                }
+            }
+            
+            /**
+             * 渲染纯展示单元格
+             */
+            renderDisplayCell(rowData, colDef) {
+                // 简单文本渲染
+                return escapeHtml(rowData[colDef.field]) || '&nbsp;';
+            }
+            
+            /**
+             * 渲染带校验的单元格
+             */
+            renderValidatedCell(rowData, colDef) {
+                const value = rowData[colDef.field];
+                const errors = this.tableManager.validator.validate(colDef.field, value, rowData);
+                
+                if (errors.length > 0) {
+                    return `<span class="invalid-cell" title="${errors.join('\n')}">${escapeHtml(value)}</span>`;
+                }
+                
+                if (colDef.editable) {
+                    return this.tableManager.editorManager.getEditableContent(rowData, colDef);
+                }
+                
+                return escapeHtml(value);
+            }
+            
+            /**
+             * 渲染自定义单元格
+             */
+            renderCustomCell(rowData, colDef) {
+                if (colDef.customRenderer) {
+                    return colDef.customRenderer(rowData);
+                }
+                
+                // 默认状态渲染
+                if (colDef.field === 'status') {
+                    const statusClass = {
+                        active: 'status-active',
+                        inactive: 'status-inactive',
+                        pending: 'status-pending'
+                    }[rowData.status];
+                    return `<span class="${statusClass}">${rowData.status}</span>`;
+                }
+                
+                // 进度条渲染
+                if (colDef.field === 'progress') {
+                    const color = rowData.progress > 70 ? '#67c23a' : 
+                                rowData.progress > 30 ? '#e6a23c' : '#f56c6c';
+                    return `
+                        <div class="progress-cell">
+                            <div class="progress-bar" style="width: ${rowData.progress}%; background-color: ${color}"></div>
+                            <span class="progress-text">${rowData.progress}%</span>
+                        </div>
+                    `;
+                }
+                
+                return escapeHtml(rowData[colDef.field]);
+            }
+            
+            /**
+             * 渲染单个单元格
+             */
+            renderCell(rowId, field) {
+                const row = this.tableManager.tableContent.querySelector(`tr[data-row-id="${rowId}"]`);
+                if (!row) return;
+                
+                const rowData = this.tableManager.data.find(r => r.id == rowId);
+                if (!rowData) return;
+                
+                const colIndex = this.tableManager.columns.findIndex(col => col.field === field);
+                if (colIndex === -1) return;
+                
+                const cell = row.cells[colIndex];
+                if (!cell) return;
+                
+                this.renderCellContent(cell, rowData, this.tableManager.columns[colIndex]);
+            }
+            
+            /**
+             * 回收行DOM
+             */
+            recycleRow(row) {
+                if (this.rowCache.length < 50) { // 最多缓存50行
+                    // 清除行数据关联
+                    row.removeAttribute('data-row-id');
+                    
+                    // 清除单元格内容
+                    for (let i = 0; i < row.cells.length; i++) {
+                        row.cells[i].innerHTML = '';
+                    }
+                    
+                    this.rowCache.push(row);
+                }
+            }
+            
+            /**
+             * 获取缓存的回收行
+             */
+            getRecycledRow() {
+                return this.rowCache.pop() || null;
+            }
+        }
+
+        /**
+         * PaginationManager 分页管理器
+         * 负责处理表格的分页功能
+         */
+        class PaginationManager {
+            constructor(tableManager) {
+                this.tableManager = tableManager;
+                this.currentPage = 1;
+                this.pageSize = 10000;
+                this.total = 0;
+                this.setupPaginationControls();
+            }
+            
+            /**
+             * 设置分页控件
+             */
+            setupPaginationControls() {
+                const footer = this.tableManager.container.querySelector('.table-footer');
+                footer.innerHTML = `
+                    <div class="pagination">
+                        <button class="prev-page" disabled>上一页</button>
+                        <span class="page-info">第1页</span>
+                        <button class="next-page">下一页</button>
+                        <select class="page-size">
+                            <option value="50">50条/页</option>
+                            <option value="100" selected>100条/页</option>
+                            <option value="200">200条/页</option>
+                        </select>
+                    </div>
+                `;
+                
+                footer.querySelector('.prev-page').addEventListener('click', () => this.prevPage());
+                footer.querySelector('.next-page').addEventListener('click', () => this.nextPage());
+                footer.querySelector('.page-size').addEventListener('change', (e) => {
+                    this.pageSize = parseInt(e.target.value);
+                    this.loadPage(1);
+                });
+            }
+            
+            /**
+             * 加载指定页数据
+             */
+            async loadPage(page) {
+                // 模拟API调用延迟
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                // 计算分页数据
+                const start = (page - 1) * this.pageSize;
+                const end = start + this.pageSize;
+                const pageData = this.tableManager.fullData.slice(start, end);
+                
+                this.currentPage = page;
+                this.total = this.tableManager.fullData.length;
+                
+                // 更新表格数据
+                this.tableManager.updateData(pageData);
+                this.updatePaginationInfo();
+                
+                // 更新按钮状态
+                const prevBtn = this.tableManager.container.querySelector('.prev-page');
+                const nextBtn = this.tableManager.container.querySelector('.next-page');
+                prevBtn.disabled = this.currentPage <= 1;
+                nextBtn.disabled = this.currentPage * this.pageSize >= this.total;
+            }
+            
+            /**
+             * 上一页
+             */
+            prevPage() {
+                if (this.currentPage > 1) {
+                    this.loadPage(this.currentPage - 1);
+                }
+            }
+            
+            /**
+             * 下一页
+             */
+            nextPage() {
+                if (this.currentPage * this.pageSize < this.total) {
+                    this.loadPage(this.currentPage + 1);
+                }
+            }
+            
+            /**
+             * 更新分页信息显示
+             */
+            updatePaginationInfo() {
+                const totalPages = Math.ceil(this.total / this.pageSize);
+                const info = this.tableManager.container.querySelector('.page-info');
+                info.textContent = `第${this.currentPage}页，共${totalPages}页，${this.total}条`;
+            }
+        }
+
+        /**
+         * TableManager 表格核心管理类
+         * 负责协调各个模块的工作
+         */
+        class TableManager {
+            constructor(options) {
+                // 初始化配置
+                this.config = {
+                    container: options.container,
+                    rowHeight: options.rowHeight || 40,
+                    visibleRows: Math.ceil(options.height / (options.rowHeight || 40)) || 20,
+                    mode: options.mode || 'display'
+                };
+                
+                // 初始化数据
+                this.fullData = options.data || [];
+                this.data = options.data || [];
+                this.columns = options.columns || [];
+                
+                // 缓存DOM引用
+                this.container = options.container;
+                this.header = null;
+                this.body = null;
+                this.virtualContent = null;
+                this.tableContent = null;
+                
+                // 初始化子模块
+                this.virtualScroll = new VirtualScroll(this);
+                this.cellRenderer = new CellRenderer(this);
+                this.editorManager = new EditorManager(this);
+                this.validator = new Validator(this);
+                this.pagination = new PaginationManager(this);
+                
+                // 初始化DOM结构
+                this.initDOM();
+                
+                // 绑定事件
+                this.bindEvents();
+                
+                // 初始渲染
+                this.render();
+            }
+            
+            /**
+             * 初始化DOM结构
+             */
+            initDOM() {
+                // 创建表格基本结构
+                this.container.innerHTML = `
+                    <div class="table-toolbar">
+                        <select id="mode-selector">
+                            <option value="display">纯展示模式</option>
+                            <option value="editable">可编辑模式</option>
+                            <option value="validation">带校验编辑</option>
+                            <option value="custom">自定义单元格</option>
+                        </select>
+                        <button id="export-btn">导出Excel</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <div class="table-header">
+                            <table><thead id="table-head"></thead></table>
+                        </div>
+                        <div class="table-body" id="table-body">
+                            <div class="virtual-scroll-content"></div>
+                            <table><tbody id="table-content"></tbody></table>
+                        </div>
+                    </div>
+                    <div class="table-footer">
+                        <div class="pagination">
+                            <button class="prev-page" disabled>上一页</button>
+                            <span class="page-info">第1页</span>
+                            <button class="next-page">下一页</button>
+                            <select class="page-size">
+                                <option value="50">50条/页</option>
+                                <option value="100" selected>100条/页</option>
+                                <option value="200">200条/页</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                
+                // 缓存DOM引用
+                this.header = this.container.querySelector('#table-head');
+                this.body = this.container.querySelector('#table-body');
+                this.virtualContent = this.body.querySelector('.virtual-scroll-content');
+                this.tableContent = this.body.querySelector('#table-content');
+            }
+            
+            /**
+             * 绑定事件
+             */
+            bindEvents() {
+                // 滚动事件委托给VirtualScroll
+                this.body.addEventListener('scroll', () => this.virtualScroll.handleScroll());
+                
+                // 点击事件委托给EditorManager
+                this.tableContent.addEventListener('click', (e) => this.editorManager.handleClick(e));
+                
+                // 变化事件处理
+                this.tableContent.addEventListener('change', (e) => this.handleCellChange(e));
+                
+                // 模式切换
+                this.container.querySelector('#mode-selector').addEventListener('change', (e) => {
+                    this.setMode(e.target.value);
+                });
+                
+                // 导出按钮
+                this.container.querySelector('#export-btn').addEventListener('click', () => {
+                    this.exportToExcel();
+                });
+            }
+            
+            /**
+             * 渲染表格
+             */
+            render() {
+                // 协调各模块进行渲染
+                this.renderHeader();
+                this.virtualScroll.update();
+                this.cellRenderer.renderVisibleCells();
+            }
+            
+            /**
+             * 渲染表头
+             */
+            renderHeader() {
+                // 渲染表头
+                const headerHtml = this.columns.map(col => 
+                    `<th style="width:${col.width || 'auto'}">${col.title}</th>`
+                ).join('');
+                
+                this.header.innerHTML = `<tr>${headerHtml}</tr>`;
+            }
+            
+            /**
+             * 处理单元格变化
+             */
+            handleCellChange(event) {
+                const input = event.target;
+                if (!input.hasAttribute('data-field') || !input.hasAttribute('data-row-id')) {
+                    return;
+                }
+                
+                // 获取编辑的单元格信息
+                const rowId = input.dataset.rowId;
+                const field = input.dataset.field;
+                const newValue = input.value;
+                
+                // 找到对应行数据
+                const row = this.data.find(r => r.id == rowId);
+                if (!row) return;
+                
+                // 先校验
+                const errors = this.validator.validate(field, newValue, row);
+                if (errors.length > 0) {
+                    this.editorManager.showErrors(input, errors);
+                    return;
+                }
+                
+                // 更新数据
+                row[field] = newValue;
+                
+                // 重新渲染单元格（可能影响其他单元格）
+                this.cellRenderer.renderCell(rowId, field);
+            }
+            
+            /**
+             * 更新表格数据
+             */
+            updateData(newData) {
+                this.data = newData;
+                this.virtualScroll.update();
+                this.cellRenderer.renderVisibleCells();
+            }
+            
+            /**
+             * 设置表格模式
+             */
+            setMode(mode) {
+                this.config.mode = mode;
+                this.render();
+            }
+            
+            /**
+             * 导出为Excel
+             */
+            exportToExcel() {
+                // 简化的导出逻辑
+                let csvContent = "data:text/csv;charset=utf-8,";
+                
+                // 添加表头
+                csvContent += this.columns.map(col => col.title).join(",") + "\n";
+                
+                // 添加数据
+                this.data.forEach(row => {
+                    csvContent += this.columns.map(col => {
+                        let value = row[col.field];
+                        // 处理特殊值
+                        if (value === undefined || value === null) value = '';
+                        // 处理包含逗号的值
+                        if (typeof value === 'string' && value.includes(',')) {
+                            return `"${value}"`;
+                        }
+                        return value;
+                    }).join(",") + "\n";
+                });
+                
+                // 创建下载链接
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "data_export.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        // 列定义
+        const columns = [
+            { field: 'id', title: 'ID', width: '80px' },
+            { field: 'name', title: '姓名', width: '120px', editable: true },
+            { field: 'email', title: '邮箱', width: '200px', editable: true, 
+              validator: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+              validationMessage: '请输入有效的邮箱地址'
+            },
+            { field: 'phone', title: '手机号', width: '150px', editable: true,
+              validator: (value) => /^1[3-9]\d{9}$/.test(value),
+              validationMessage: '请输入有效的手机号码'
+            },
+            { field: 'age', title: '年龄', width: '80px', type: 'number', 
+              editable: true, min: 18, max: 65
+            },
+            { field: 'department', title: '部门', width: '120px', 
+              editorType: 'select',
+              options: [
+                { value: '研发部', label: '研发部' },
+                { value: '市场部', label: '市场部' },
+                { value: '销售部', label: '销售部' },
+                { value: '人事部', label: '人事部' },
+                { value: '财务部', label: '财务部' }
+              ]
+            },
+            { field: 'status', title: '状态', width: '100px' },
+            { field: 'joinDate', title: '入职日期', width: '120px', 
+              editorType: 'date'
+            },
+            { field: 'salary', title: '薪资', width: '120px', type: 'number' },
+            { field: 'performance', title: '绩效', width: '100px', type: 'number' },
+            { field: 'progress', title: '进度', width: '150px' }
+        ];
+
+        // 生成测试数据
+        const testData = generateRandomData(100000);
+
+        // 初始化表格
+        const tableContainer = document.querySelector('.big-data-table-container');
+        const tableManager = new TableManager({
+            container: tableContainer,
+            columns: columns,
+            data: testData,
+            height: 600,
+            mode: 'display'
+        });
+
+        // 保存完整数据引用
+        tableManager.fullData = testData;
+
+        // 初始加载第一页
+        tableManager.pagination.loadPage(1);
+    </script>
+</body>
+</html>
