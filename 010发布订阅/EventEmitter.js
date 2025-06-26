@@ -30,5 +30,7 @@ emitter.on('userLoggedIn', user => {
 
 // 发布事件（异步操作后）
 setTimeout(() => {
-  emitter.emit('userLoggedIn', { name: 'Charlie' });
+  emitter.emit('userLoggedIn', {
+    name: 'Charlie'
+  });
 }, 2000);

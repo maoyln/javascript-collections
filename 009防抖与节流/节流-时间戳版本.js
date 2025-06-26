@@ -2,7 +2,7 @@
 function throttle(fn, delay) {
   var preTime = Date.now();
 
-  return function() {
+  return function () {
     var context = this,
       args = [...arguments],
       nowTime = Date.now();
